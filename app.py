@@ -234,13 +234,17 @@ def fetch_from_api(district):
                     0
                 )
                 
+                # Return data in nested format to match cache structure
                 processed.append({
                     'district': district,
                     'year': year,
                     'month': month,
-                    'households_worked': households_worked,
-                    'wages_paid': wages_paid,
-                    'works_completed': works_completed
+                    'data': {  # ← Nested structure
+                        'households_worked': households_worked,
+                        'wages_paid': wages_paid,
+                        'works_completed': works_completed
+                    },
+                    'last_updated': datetime.utcnow().isoformat()
                 })
             except Exception as e:
                 logger.warning(f'Error processing record: {e}')
@@ -265,7 +269,7 @@ def fetch_from_api(district):
 
 
 def fetch_sample_data(district):
-    """Generate sample data for a district"""
+    """Generate sample data for a district with correct nested structure"""
     sample = []
     now = datetime.utcnow()
     for i in range(0, 12):
@@ -274,9 +278,12 @@ def fetch_sample_data(district):
             'district': district,
             'year': dt.year,
             'month': dt.month,
-            'households_worked': max(0, 5000 + (hash(district) % 3000) - i * 50),
-            'wages_paid': round(1200000 + (hash(district) % 500000) - i * 10000, 2),
-            'works_completed': max(0, 200 + (hash(district) % 100) - i * 3)
+            'data': {  # ← Nested data structure to match cache format
+                'households_worked': max(0, 5000 + (hash(district) % 3000) - i * 50),
+                'wages_paid': round(1200000 + (hash(district) % 500000) - i * 10000, 2),
+                'works_completed': max(0, 200 + (hash(district) % 100) - i * 3)
+            },
+            'last_updated': datetime.utcnow().isoformat()
         })
     return sample
 
@@ -318,9 +325,14 @@ def get_district_data(district_id):
     logger.info(f'Cache stale or missing, fetching from API for {district_id}')
     api_data = fetch_from_api(district_id)
     if api_data:
-        # cache up to 12 records
+        # cache up to 12 records - store just the nested 'data' part
         for item in api_data[:12]:
-            cache_data(district_id, item.get('year', datetime.utcnow().year), item.get('month', 1), item)
+            cache_data(
+                district_id, 
+                item.get('year', datetime.utcnow().year), 
+                item.get('month', 1), 
+                item.get('data', {})  # ← Pass only the nested data object
+            )
         logger.info(f'Cached {len(api_data[:12])} records for {district_id}')
         return jsonify({"source": "api", "items": api_data[:12]})
 

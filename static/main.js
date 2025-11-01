@@ -55,8 +55,6 @@ function renderCards(items) {
   const cardsRow = document.getElementById('cardsRow');
   cardsRow.innerHTML = '';
   
-  console.log('renderCards called with:', items);
-  
   // Validate items
   if (!items || items.length === 0) {
     console.error('No items to render cards');
@@ -78,8 +76,6 @@ function renderCards(items) {
     cardsRow.innerHTML = '<div class="col-12 text-center text-muted">Invalid data format</div>';
     return;
   }
-  
-  console.log('Latest data:', latest.data);
   
   // Metrics configuration with icons and tooltips
   const metrics = [
@@ -247,8 +243,6 @@ async function onDistrictChange() {
   const sel = document.getElementById('districtSelect');
   const district = sel.value;
   
-  console.log('District changed to:', district);
-  
   if (!district) {
     // Hide dashboard if no district selected
     document.getElementById('dashboard').classList.add('d-none');
@@ -261,9 +255,7 @@ async function onDistrictChange() {
   showLoading();
   
   try {
-    console.log('Fetching data for:', district);
     const resp = await fetchDataFor(district);
-    console.log('Response received:', resp);
     
     // Basic validation
     if (!resp) {
@@ -272,15 +264,11 @@ async function onDistrictChange() {
     }
     
     const items = resp.items || [];
-    console.log('Items:', items.length, 'records');
     
     if (items.length === 0) {
       console.warn('No items in response');
       throw new Error('No data available for this district');
     }
-    
-    // Log first item for debugging
-    console.log('First item:', items[0]);
     
     const districtName = sel.options[sel.selectedIndex].text;
     document.getElementById('districtTitle').textContent = districtName;
@@ -295,20 +283,15 @@ async function onDistrictChange() {
       document.getElementById('lastUpdated').textContent = '';
     }
     
-    console.log('Rendering cards...');
     // Render cards and chart
     renderCards(items);
-    
-    console.log('Rendering chart...');
     renderChart(items);
     
-    console.log('Display complete');
     // Show dashboard only after successful rendering
     hideLoading();
     document.getElementById('dashboard').classList.remove('d-none');
   } catch (e) {
     console.error('Error in onDistrictChange:', e);
-    console.error('Error stack:', e.stack);
     showError(`❌ ${e.message}\n\nकृपया दूसरा जिला चुनें या बाद में कोशिश करें`);
   }
 }
