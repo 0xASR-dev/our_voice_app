@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="MGNREGA district performance tracker for rural India">
+    <title>हमारी आवाज़, हमारे अधिकार — MGNREGA</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="/static/style.css">
+  </head>
+  <body>
+    <div class="container py-4">
+      <div class="text-center mb-4">
+        <h1 class="mb-2">🗣️ Our Voice, Our Rights</h1>
+        <p class="lead">हमारी आवाज़, हमारे अधिकार — MGNREGA जिला प्रदर्शन</p>
+        <p class="text-muted">मनरेगा योजना की जानकारी आपकी भाषा में</p>
+        
+        <!-- Help button -->
+        <button type="button" class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#helpModal">
+          ❓ मनरेगा क्या है? / What is MGNREGA?
+        </button>
+      </div>
+
+      <div class="row mb-4">
+        <div class="col-md-8 offset-md-2">
+          <div class="input-group input-group-lg">
+            <button id="detectBtn" class="btn btn-outline-primary" title="अपने स्थान से जिला खोजें">
+              📍 मेरी जिला खोजें
+            </button>
+            <select id="districtSelect" class="form-select" aria-label="Select your district">
+              <option value="">-- जिला चुनें / Select District --</option>
+            </select>
+          </div>
+          <small class="text-muted d-block mt-2 text-center">
+            अपनी जिला चुनें या स्थान से खोजें
+          </small>
+        </div>
+      </div>
+
+      <div id="dashboard" class="d-none">
+        <div id="districtTitle" class="text-center"></div>
+
+        <div class="row mt-4" id="cardsRow">
+          <!-- cards injected by JS -->
+        </div>
+
+        <div class="row mt-5">
+          <div class="col-md-10 offset-md-1">
+            <div class="chart-container">
+              <h4 class="text-center mb-3">📊 पिछले महीनों का प्रदर्शन / Past Performance</h4>
+              <canvas id="trendChart" height="100"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <div class="text-center data-source">
+          <small class="text-muted">
+            <strong>डेटा स्रोत:</strong> MGNREGA / data.gov.in | 
+            <span id="lastUpdated"></span>
+          </small>
+        </div>
+      </div>
+
+      <div id="loadingMsg" class="text-center mt-4 d-none">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+        <p class="mt-2">डेटा लोड हो रहा है... / Loading data...</p>
+      </div>
+
+      <div id="errorMsg" class="mt-4 text-center d-none"></div>
+
+    </div>
+
+    <!-- Help Modal -->
+    <div class="modal fade" id="helpModal" tabindex="-1" aria-labelledby="helpModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="helpModalLabel">❓ मनरेगा के बारे में / About MGNREGA</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <!-- Hindi Section -->
+            <div class="mb-4">
+              <h6 class="fw-bold">🇮🇳 मनरेगा क्या है?</h6>
+              <p>
+                <strong>महात्मा गांधी राष्ट्रीय ग्रामीण रोजगार गारंटी अधिनियम (मनरेगा)</strong> 
+                भारत सरकार द्वारा चलाई गई एक योजना है जो ग्रामीण क्षेत्रों में लोगों को 
+                <strong>साल में 100 दिन का रोजगार</strong> देती है।
+              </p>
+            </div>
+
+            <!-- English Section -->
+            <div class="mb-4">
+              <h6 class="fw-bold">🇬🇧 What is MGNREGA?</h6>
+              <p>
+                <strong>Mahatma Gandhi National Rural Employment Guarantee Act (MGNREGA)</strong> 
+                is a government program that provides <strong>100 days of guaranteed wage employment</strong> 
+                to rural households every year.
+              </p>
+            </div>
+
+            <hr>
+
+            <!-- What the numbers mean -->
+            <div class="mb-4">
+              <h6 class="fw-bold">📊 डैशबोर्ड में क्या दिखाया गया है / What This Dashboard Shows:</h6>
+              
+              <div class="row">
+                <div class="col-md-6">
+                  <p><strong>👨‍👩‍👧‍👦 लोगों को काम मिला</strong><br>
+                  <small>कितने लोगों को मनरेगा के तहत रोजगार मिला</small></p>
+                  
+                  <p><strong>💰 मज़दूरी का भुगतान</strong><br>
+                  <small>कितने पैसे मज़दूरी में दिए गए</small></p>
+                  
+                  <p><strong>🏗️ काम पूरे हुए</strong><br>
+                  <small>कितने निर्माण कार्य पूरे हो गए</small></p>
+                </div>
+                
+                <div class="col-md-6">
+                  <p><strong>👥 People Employed</strong><br>
+                  <small>Number of people who got work under MGNREGA</small></p>
+                  
+                  <p><strong>💵 Wages Paid</strong><br>
+                  <small>Total money paid as wages to workers</small></p>
+                  
+                  <p><strong>🚧 Works Completed</strong><br>
+                  <small>Number of construction projects finished</small></p>
+                </div>
+              </div>
+            </div>
+
+            <hr>
+
+            <!-- Your Rights -->
+            <div class="mb-4">
+              <h6 class="fw-bold">✊ आपके अधिकार / Your Rights:</h6>
+              
+              <ul class="list-unstyled">
+                <li>✅ <strong>साल में 100 दिन काम की गारंटी</strong> / 100 days of work guaranteed per year</li>
+                <li>✅ <strong>आवेदन के 15 दिन में काम मिलना चाहिए</strong> / Work must be provided within 15 days</li>
+                <li>✅ <strong>न्यूनतम मज़दूरी मिलनी चाहिए</strong> / You must get minimum wages</li>
+                <li>✅ <strong>अगर काम नहीं मिला तो बेरोजगारी भत्ता</strong> / Unemployment allowance if no work</li>
+              </ul>
+            </div>
+
+            <hr>
+
+            <!-- Who can benefit -->
+            <div class="mb-4">
+              <h6 class="fw-bold">👤 किसको मिलेगा? / Who Can Benefit?</h6>
+              <p>
+                <strong>हिंदी:</strong> कोई भी ग्रामीण घर जो काम करने के लिए तैयार हो, 
+                उसे मनरेगा के तहत काम मिल सकता है। जॉब कार्ड बनवाने के लिए अपने 
+                ग्राम पंचायत से संपर्क करें।
+              </p>
+              <p>
+                <strong>English:</strong> Any rural household willing to do unskilled manual work 
+                can get employment under MGNREGA. Visit your Gram Panchayat office to apply for a Job Card.
+              </p>
+            </div>
+
+            <hr>
+
+            <!-- How to use this website -->
+            <div>
+              <h6 class="fw-bold">🖥️ इस वेबसाइट का उपयोग कैसे करें / How to Use This Website:</h6>
+              <ol>
+                <li><strong>अपना जिला चुनें</strong> ऊपर दिए गए ड्रॉपडाउन से / <strong>Select your district</strong> from the dropdown above</li>
+                <li><strong>डेटा देखें</strong> - रंगीन बॉक्स में नंबर देखें / <strong>View the data</strong> - see numbers in colorful boxes</li>
+                <li><strong>ग्राफ देखें</strong> - पिछले महीनों का प्रदर्शन / <strong>Check the chart</strong> - performance over past months</li>
+                <li><strong>दूसरे जिलों से तुलना करें</strong> / <strong>Compare with other districts</strong></li>
+              </ol>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">बंद करें / Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="/static/main.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  </body>
+</html>
